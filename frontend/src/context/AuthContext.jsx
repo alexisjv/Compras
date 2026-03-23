@@ -1,32 +1,32 @@
 import { createContext, useContext, useState, useCallback } from 'react';
-import api from '../utils/api';
+import { registerUser, loginUser } from '../lib/storage';
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
     try {
-      const stored = localStorage.getItem('eventify_user');
-      return stored ? JSON.parse(stored) : null;
+      const s = localStorage.getItem('eventify_user');
+      return s ? JSON.parse(s) : null;
     } catch {
       return null;
     }
   });
 
   const login = useCallback(async (email, password) => {
-    const { data } = await api.post('/auth/login', { email, password });
-    localStorage.setItem('eventify_user', JSON.stringify(data.user));
-    localStorage.setItem('eventify_token', data.token);
-    setUser(data.user);
-    return data.user;
+    const { user: u, token } = loginUser(email, password);
+    localStorage.setItem('eventify_user', JSON.stringify(u));
+    localStorage.setItem('eventify_token', token);
+    setUser(u);
+    return u;
   }, []);
 
   const register = useCallback(async (formData) => {
-    const { data } = await api.post('/auth/register', formData);
-    localStorage.setItem('eventify_user', JSON.stringify(data.user));
-    localStorage.setItem('eventify_token', data.token);
-    setUser(data.user);
-    return data.user;
+    const { user: u, token } = registerUser(formData);
+    localStorage.setItem('eventify_user', JSON.stringify(u));
+    localStorage.setItem('eventify_token', token);
+    setUser(u);
+    return u;
   }, []);
 
   const logout = useCallback(() => {
